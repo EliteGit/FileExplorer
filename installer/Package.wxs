@@ -3,7 +3,10 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of File Explorer is already installed." />
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
     <!-- Windows 10 (build 10240) or later -->
-    <Launch Condition="Installed OR WindowsBuild &gt;= 10240" Message="File Explorer needs Windows 10 or later." />
+    <Property Id="WINBUILD">
+      <RegistrySearch Id="WinBuildSearch" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuildNumber" Type="raw" />
+    </Property>
+    <Launch Condition="Installed OR WINBUILD &gt;= 10240" Message="File Explorer needs Windows 10 or later." />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="File Explorer" />

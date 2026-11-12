@@ -5,8 +5,12 @@
         xmlns:t="clr-namespace:FileExplorer.App.Tabs"
         xmlns:v="clr-namespace:FileExplorer.App.Views"
         xmlns:s="clr-namespace:FileExplorer.App.Shell"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Fathom" Width="1100" Height="700" MinWidth="560" MinHeight="320"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Fg}" FontFamily="Segoe UI" FontSize="13">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </shell:WindowChrome.WindowChrome>
     <Window.Resources>
         <DataTemplate DataType="{x:Type t:BrowserTabViewModel}">
             <v:BrowserTabView/>
@@ -25,6 +29,7 @@
         <KeyBinding Key="K" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
         <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
     </Window.InputBindings>
+    <Border x:Name="Frame" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -34,11 +39,16 @@
         </Grid.RowDefinitions>
 
         <!-- tab strip -->
-        <Border Grid.Row="0" Background="{DynamicResource TabBar}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="8,6,8,0">
+        <Border Grid.Row="0" Background="{DynamicResource TabBar}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="10,6,0,0" MinHeight="38">
             <DockPanel LastChildFill="True">
-                <Button DockPanel.Dock="Right" Content="✕" ToolTip="Close window" Command="{Binding CloseWindowCommand}" Margin="0,0,0,2"/>
-                <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                <c:TabStrip x:Name="Strip" DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" SelectedTab="{Binding ActiveTab, Mode=TwoWay}" VerticalAlignment="Bottom">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,-6,0,0" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button x:Name="MinBtn" Style="{StaticResource CaptionButton}" Content="&#xE921;" ToolTip="Minimize" Click="Min_Click"/>
+                    <Button x:Name="MaxBtn" Style="{StaticResource CaptionButton}" Content="&#xE922;" ToolTip="Maximize" Click="Max_Click"/>
+                    <Button Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;" ToolTip="Close window" Command="{Binding CloseWindowCommand}"/>
+                </StackPanel>
+                <Image DockPanel.Dock="Left" Source="/app.ico" Width="16" Height="16" Margin="0,0,10,9" VerticalAlignment="Bottom"/>
+                <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+                <c:TabStrip x:Name="Strip" shell:WindowChrome.IsHitTestVisibleInChrome="True" DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" SelectedTab="{Binding ActiveTab, Mode=TwoWay}" VerticalAlignment="Bottom">
                     <c:TabStrip.ItemsPanel>
                         <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
                     </c:TabStrip.ItemsPanel>
@@ -139,4 +149,5 @@
             </DockPanel>
         </Border>
     </Grid>
+    </Border>
 </Window>

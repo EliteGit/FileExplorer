@@ -6,7 +6,7 @@ namespace FileExplorer.App.Shell;
 public sealed class WindowTabDragHost : ITabDragHost
 {
     /// <summary>Where the pointer sits inside a new window so it is over that window's tab strip.</summary>
-    public static readonly Pt GrabOffset = new(90, 44);
+    public static readonly Pt GrabOffset = new(90, 20);
 
     private readonly MainViewModel _window;
     private readonly Func<double, int> _indexAtX;

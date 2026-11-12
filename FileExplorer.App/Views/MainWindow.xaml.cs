@@ -78,15 +78,21 @@ public partial class MainWindow : Window
         menu.Items.Add(item);
     }
 
-    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+    private void Min_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
-    /// <summary>Dark title bar and borders (Windows 10 build 18985+; older builds simply keep the normal one).</summary>
-    protected override void OnSourceInitialized(EventArgs e)
+    private void Max_Click(object sender, RoutedEventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    /// <summary>The window draws its own title bar: keep the maximize glyph and the frame in step with the window state.</summary>
+    protected override void OnStateChanged(EventArgs e)
     {
-        base.OnSourceInitialized(e);
-        int on = 1;
-        DwmSetWindowAttribute(new System.Windows.Interop.WindowInteropHelper(this).Handle, 20, ref on, sizeof(int));
+        base.OnStateChanged(e);
+        bool max = WindowState == WindowState.Maximized;
+        MaxBtn.Content = max ? "\uE923" : "\uE922";
+        MaxBtn.ToolTip = max ? "Restore" : "Maximize";
+        var t = SystemParameters.WindowResizeBorderThickness;
+        Frame.Margin = max ? new Thickness(t.Left, t.Top, t.Right, t.Bottom) : new Thickness(0);
+        Frame.BorderThickness = max ? new Thickness(0) : new Thickness(1);
     }
 
     public event Action<MainViewModel>? ClosingLast;

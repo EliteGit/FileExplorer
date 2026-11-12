@@ -24,6 +24,7 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>
+    <Resource Include="app.ico" />
     <Using Include="System.IO" />
   </ItemGroup>
   <PropertyGroup>

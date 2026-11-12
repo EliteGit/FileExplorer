@@ -1,5 +1,5 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Name="Fathom" Manufacturer="Fathom" Version="1.3.0" UpgradeCode="6B6E4C58-3D0A-4F58-9C3B-0F1C1A7D4E21" Scope="perMachine" Compressed="yes">
+  <Package Name="Fathom" Manufacturer="Fathom" Version="1.4.0" UpgradeCode="6B6E4C58-3D0A-4F58-9C3B-0F1C1A7D4E21" Scope="perMachine" Compressed="yes">
     <Icon Id="AppIcon" SourceFile="..\FileExplorer.App\app.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of Fathom is already installed." />

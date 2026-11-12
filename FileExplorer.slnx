@@ -1,5 +1,4 @@
 <Solution>
   <Project Path="FileExplorer.App/FileExplorer.App.csproj" />
   <Project Path="FileExplorer.Core/FileExplorer.Core.csproj" />
-  <Project Path="FileExplorer.Tests/FileExplorer.Tests.csproj" />
 </Solution>

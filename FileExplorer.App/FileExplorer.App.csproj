@@ -17,9 +17,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <AssemblyName>FileExplorer</AssemblyName>
-    <Version>1.0.0</Version>
-    <Product>File Explorer</Product>
+    <AssemblyName>Fathom</AssemblyName>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.1.0</Version>
+    <Product>Fathom</Product>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <ItemGroup>

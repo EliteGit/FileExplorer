@@ -5,7 +5,7 @@
         xmlns:t="clr-namespace:FileExplorer.App.Tabs"
         xmlns:v="clr-namespace:FileExplorer.App.Views"
         xmlns:s="clr-namespace:FileExplorer.App.Shell"
-        Title="File Explorer" Width="1100" Height="700" MinWidth="560" MinHeight="320"
+        Title="Fathom" Width="1100" Height="700" MinWidth="560" MinHeight="320"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Fg}" FontFamily="Segoe UI" FontSize="13">
     <Window.Resources>
         <DataTemplate DataType="{x:Type t:BrowserTabViewModel}">

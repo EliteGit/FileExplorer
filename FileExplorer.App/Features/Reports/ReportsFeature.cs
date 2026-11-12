@@ -25,7 +25,7 @@ public sealed class ReportsFeature : IFeature
 
     private void Add(FeatureRegistry registry, string command, string? sidebar, ReportKind kind)
     {
-        void Open(MainViewModel w) => w.AddTab(new ReportTabViewModel(_s, _icons, kind, ToolServices.StartFolder(w)));
+        void Open(MainViewModel w) => w.OpenTool(new ReportTabViewModel(_s, _icons, kind, ToolServices.StartFolder(w)));
         registry.AddCommand(new FeatureCommand(command + " report", null, Open));
         if (sidebar is not null) registry.AddSidebarEntry(new SidebarEntry("TOOLS", sidebar, Open));
     }

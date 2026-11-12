@@ -26,5 +26,5 @@ public sealed class DiskUsageFeature : IFeature
         }
     }
 
-    private void OpenFor(MainViewModel window, string path) => window.AddTab(new DiskUsageTabViewModel(_services, path));
+    private void OpenFor(MainViewModel window, string path) => window.OpenTool(new DiskUsageTabViewModel(_services, path));
 }

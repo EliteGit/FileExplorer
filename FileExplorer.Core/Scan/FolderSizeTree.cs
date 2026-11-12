@@ -41,6 +41,7 @@ public sealed class FolderSizeTree
         RootId => Mode == SizeMode.Logical ? RootLogical : RootAllocated,
         FreeId => VolumeFreeBytes,
         UnknownId => UnknownBytes,
+        < 0 => 0,                 // OtherId and any future synthetic block: sized by the treemap cell, not by the tree
         _ => Mode == SizeMode.Logical ? _logical[id] : _allocated[id],
     };
 

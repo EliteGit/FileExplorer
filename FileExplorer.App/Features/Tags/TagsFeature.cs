@@ -27,7 +27,7 @@ public sealed class TagsFeature : IFeature
         ViewTemplates.Register<TagsTabViewModel, TagsTabView>();
         registry.AddTabType(new TabType(TagsTabViewModel.Type, "Tags", () => NewTab(registry, null),
             s => NewTab(registry, System.Text.Json.JsonSerializer.Deserialize<string>(s.Data) is { Length: > 0 } t ? t : null)));
-        registry.AddCommand(new FeatureCommand("Tags manager", null, w => w.AddTab(NewTab(registry, null))));
+        registry.AddCommand(new FeatureCommand("Tags manager", null, w => w.OpenTool(NewTab(registry, null))));
         registry.AddRightPanel(w => new TagsPanelView(new TagsPanelViewModel(w, _store, _errors, registry)));
         registry.AddSidebarProvider(() => FavoriteEntries());
         registry.AddSidebarProvider(() => TagEntries(registry));
@@ -48,6 +48,6 @@ public sealed class TagsFeature : IFeature
     {
         var tags = _store.AllTags();
         if (!tags.IsOk) { _errors.Report(tags.Error); return Array.Empty<SidebarEntry>(); }
-        return tags.Value.Select(t => new SidebarEntry("TAGS", $"# {t.Name} ({t.Files})", w => w.AddTab(NewTab(registry, t.Name)))).ToList();
+        return tags.Value.Select(t => new SidebarEntry("TAGS", $"# {t.Name} ({t.Files})", w => w.OpenTool(NewTab(registry, t.Name)))).ToList();
     }
 }

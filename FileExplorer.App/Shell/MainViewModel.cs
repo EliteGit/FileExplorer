@@ -28,6 +28,12 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public WindowManager Manager => _manager;
+
+    /// <summary>True for the window that tools (search, disk usage, ...) open in.</summary>
+    public bool IsToolWindow { get; set; }
+
+    /// <summary>Opens a tool tab in the tools window instead of this folder window.</summary>
+    public void OpenTool(ITabViewModel tab) => _manager.OpenTool(this, tab);
     public FeatureRegistry Features { get; }
     public ErrorReporter Errors { get; }
     public ObservableCollection<ITabViewModel> Tabs { get; } = new();

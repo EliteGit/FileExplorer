@@ -16,7 +16,7 @@ public sealed class DuplicatesFeature : IFeature
         ViewTemplates.Register<DuplicatesTabViewModel, DuplicatesTabView>();
         registry.AddTabType(new TabType(DuplicatesTabViewModel.Type, "Duplicates", () => new DuplicatesTabViewModel(_s, ""),
             s => new DuplicatesTabViewModel(_s, System.Text.Json.JsonSerializer.Deserialize<string>(s.Data) ?? "")));
-        void Open(MainViewModel w) { var tab = new DuplicatesTabViewModel(_s, ToolServices.StartFolder(w)); w.AddTab(tab); }
+        void Open(MainViewModel w) { var tab = new DuplicatesTabViewModel(_s, ToolServices.StartFolder(w)); w.OpenTool(tab); }
         registry.AddCommand(new FeatureCommand("Duplicate finder", null, Open));
         registry.AddSidebarEntry(new SidebarEntry("TOOLS", "⧉ Duplicate finder", Open));
     }

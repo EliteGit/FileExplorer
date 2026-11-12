@@ -87,7 +87,7 @@ public sealed class TreemapControl : FrameworkElement
         if (r.Width < 64 || r.Height < 30) return;
         var name = _tree!.Name(c.NodeId);
         var brush = c.NodeId is FolderSizeTree.FreeId or FolderSizeTree.UnknownId ? (Brush)FindResource("Muted") : Brushes.White;
-        var text = new FormattedText($"{name}\n{SizeFormatter.Format(_tree.Size(c.NodeId))}", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 11, brush,
+        var text = new FormattedText($"{name}\n{SizeFormatter.Format((long)c.Weight)}", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 11, brush,
             VisualTreeHelper.GetDpi(this).PixelsPerDip)
         { MaxTextWidth = Math.Max(1, r.Width - 8), MaxTextHeight = Math.Max(1, r.Height - 6), Trimming = TextTrimming.CharacterEllipsis };
         dc.DrawText(text, new Point(r.X + 4, r.Y + 3));
@@ -110,7 +110,7 @@ public sealed class TreemapControl : FrameworkElement
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
         if (Hit(e) is not { } id || _tree is null) { ToolTip = null; return; }
-        long size = _tree.Size(id);
+        long size = _model?.CellOf(id) is { } cell ? (long)cell.Weight : _tree.Size(id);
         double pct = 100.0 * size / Math.Max(1, _tree.Size(_viewRoot));
         ToolTip = $"{_tree.Name(id)}\n{SizeFormatter.Format(size)} · {pct:0.0}%" + (id >= 0 ? $"\n{_tree.FullPath(id)}" : "");
     }

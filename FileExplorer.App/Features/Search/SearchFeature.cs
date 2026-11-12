@@ -50,9 +50,9 @@ public sealed class SearchFeature : IFeature
     /// <summary>Opens a search tab, or focuses the one this window already has.</summary>
     private void Open(MainViewModel window)
     {
-        var existing = window.Tabs.OfType<SearchTabViewModel>().FirstOrDefault();
-        if (existing is null) { window.AddTab(NewTab("")); return; }
-        window.ActiveTab = existing;
+        if (window.Manager.FindTab<SearchTabViewModel>() is not var (host, existing)) { window.OpenTool(NewTab("")); return; }
+        host.ActiveTab = existing;
+        window.Manager.BringToFront(host);
         existing.RequestFocus();
     }
 

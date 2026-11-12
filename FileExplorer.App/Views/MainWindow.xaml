@@ -47,7 +47,6 @@
                     <Button Style="{StaticResource CaptionCloseButton}" Content="&#xE8BB;" ToolTip="Close window" Command="{Binding CloseWindowCommand}"/>
                 </StackPanel>
                 <Image DockPanel.Dock="Left" Source="/app.ico" Width="16" Height="16" Margin="0,0,10,9" VerticalAlignment="Bottom"/>
-                <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
                 <c:TabStrip x:Name="Strip" shell:WindowChrome.IsHitTestVisibleInChrome="True" DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" SelectedTab="{Binding ActiveTab, Mode=TwoWay}" VerticalAlignment="Bottom">
                     <c:TabStrip.ItemsPanel>
                         <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
@@ -65,6 +64,7 @@
                         </DataTemplate>
                     </c:TabStrip.ItemTemplate>
                 </c:TabStrip>
+                <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2" shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
                 <Border/>
             </DockPanel>
         </Border>

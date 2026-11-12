@@ -28,11 +28,36 @@ public partial class App : Application
 
         _services.GetRequiredService<WpfWindowPresenter>().Bind(
             () => _services.GetRequiredService<WindowManager>(), _ => SaveSession(manager, session, errors));
+        DispatcherUnhandledException += (_, e) => OnUnexpectedError(e, errors);
         manager.AllWindowsClosed += () => Dispatcher.BeginInvoke(new Action(Shutdown));
         SessionEnding += (_, _) => SaveSession(manager, session, errors);
 
         RegisterFeatures(_services.GetRequiredService<FeatureRegistry>());
         StartWindows(manager, session, errors);
+    }
+
+    private int _recentFailures;
+    private DateTime _lastFailure = DateTime.MinValue;
+
+    /// <summary>
+    /// An unexpected error is written to the error log and shown in the status bar instead of closing the app. If the same failure
+    /// repeats in quick succession (for example inside a redraw loop) the app is allowed to stop, because carrying on would be a lie.
+    /// </summary>
+    private void OnUnexpectedError(System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e, ErrorReporter errors)
+    {
+        var now = DateTime.UtcNow;
+        _recentFailures = now - _lastFailure < TimeSpan.FromSeconds(2) ? _recentFailures + 1 : 1;
+        _lastFailure = now;
+        try
+        {
+            var dir = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "FileExplorer");
+            System.IO.Directory.CreateDirectory(dir);
+            System.IO.File.AppendAllText(System.IO.Path.Combine(dir, "errors.log"), $"{DateTime.Now:s} {e.Exception}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch (System.IO.IOException) { /* the status bar below still tells the user */ }
+        if (_recentFailures > 3) return;               // not handled: the app stops with the original exception
+        errors.Report(new Core.Common.AppError($"Unexpected error: {e.Exception.Message} (details in %LocalAppData%\\FileExplorer\\errors.log)"));
+        e.Handled = true;
     }
 
     private static void RegisterFeatures(FeatureRegistry registry)

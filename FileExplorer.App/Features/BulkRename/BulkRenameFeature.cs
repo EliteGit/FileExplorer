@@ -33,6 +33,6 @@ public sealed class BulkRenameFeature : IFeature
         if (pane is null || pane.IsThisPc) { _s.Errors.Report(new Core.Common.AppError("Open a folder tab and select the files to rename.")); return; }
         var source = pane.Selection.Count > 0 ? pane.Selection : pane.Items.ToList();
         var items = source.Select(v => new RenameItem(v.FullPath, v.IsDir, v.Entry.ModifiedLocal)).ToList();
-        window.AddTab(new BulkRenameTabViewModel(_s, pane.Path, items));
+        window.OpenTool(new BulkRenameTabViewModel(_s, pane.Path, items));
     }
 }

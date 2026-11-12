@@ -53,6 +53,33 @@ public sealed class WindowManager
     private ITabViewModel NewDefaultTab() =>
         (_features.FindTabType(BrowserTabViewModel.Type) ?? throw new InvalidOperationException("The browser tab type is not registered.")).Create();
 
+    // ---- tools open in their own window ----
+    /// <summary>
+    /// Search, disk usage, duplicates, bulk rename, reports and tags open in a separate "tools" window (created on first use,
+    /// reused afterwards), so the folder windows stay folder windows.
+    /// </summary>
+    public void OpenTool(MainViewModel source, ITabViewModel tab)
+    {
+        var target = source.IsToolWindow ? source : _windows.FirstOrDefault(w => w.IsToolWindow);
+        if (target is null)
+        {
+            var b = _presenter.GetBounds(source);
+            target = CreateWindow(tab, new WindowBounds(b.Left + 48, b.Top + 48, b.Width, b.Height, false));
+            target.IsToolWindow = true;
+            return;
+        }
+        target.AddTab(tab);
+        BringToFront(target);
+    }
+
+    /// <summary>Finds an open tab of a kind in any window (used to focus an existing search tab).</summary>
+    public (MainViewModel Window, T Tab)? FindTab<T>() where T : class, ITabViewModel
+    {
+        foreach (var win in _windows)
+            if (win.Tabs.OfType<T>().FirstOrDefault() is { } tab) return (win, tab);
+        return null;
+    }
+
     // ---- tab moves ----
     /// <summary>Moves a tab into a brand-new window. A window's only tab cannot be moved.</summary>
     public bool MoveTabToNewWindow(MainViewModel from, ITabViewModel tab, double? screenX = null, double? screenY = null, bool activate = true)

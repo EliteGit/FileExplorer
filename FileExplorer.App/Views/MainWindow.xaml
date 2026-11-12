@@ -92,7 +92,7 @@
         <!-- body -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="210"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
@@ -103,15 +103,22 @@
                             <DataTemplate>
                                 <StackPanel>
                                     <TextBlock Text="{Binding Title}" Margin="12,10,12,4" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Muted}"/>
-                                    <ItemsControl ItemsSource="{Binding Items}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Padding="12,4" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="SidebarItem_Click">
+                                    <TreeView ItemsSource="{Binding Items}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Fg}"
+                                              ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                              VirtualizingPanel.IsVirtualizing="False">
+                                        <TreeView.ItemContainerStyle>
+                                            <Style TargetType="TreeViewItem">
+                                                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                                            </Style>
+                                        </TreeView.ItemContainerStyle>
+                                        <TreeView.ItemTemplate>
+                                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                                                <Border Padding="2,3" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="SidebarItem_Click" MouseRightButtonUp="SidebarItem_RightClick">
                                                     <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
                                                 </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                            </HierarchicalDataTemplate>
+                                        </TreeView.ItemTemplate>
+                                    </TreeView>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

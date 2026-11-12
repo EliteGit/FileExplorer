@@ -128,6 +128,26 @@ public partial class PaneView : UserControl
     private void Menu_Terminal(object s, RoutedEventArgs e) => Main?.OpenTerminalHereCommand.Execute(null);
     private void Menu_Properties(object s, RoutedEventArgs e) => Main?.ShowPropertiesCommand.Execute(null);
 
+    /// <summary>The right-click target: the selected item, or the open folder when nothing is selected.</summary>
+    private string? FavoriteTarget() =>
+        _pane is null ? null : _pane.Selection.Count == 1 ? _pane.Selection[0].FullPath : _pane.Selection.Count == 0 && !_pane.IsThisPc ? _pane.Path : null;
+
+    private void Menu_Opened(object sender, RoutedEventArgs e)
+    {
+        var favs = Main?.Features.Favorites;
+        var target = FavoriteTarget();
+        FavMenu.Visibility = favs is null ? Visibility.Collapsed : Visibility.Visible;
+        FavMenu.IsEnabled = target is not null;
+        FavMenu.Header = favs is not null && target is not null && favs.IsFavorite(target) ? "Remove from favorites" : "Add to favorites";
+    }
+
+    private void Menu_Favorite(object s, RoutedEventArgs e)
+    {
+        var main = Main; var favs = main?.Features.Favorites; var target = FavoriteTarget();
+        if (main is null || favs is null || target is null) return;
+        main.Errors.Check(favs.IsFavorite(target) ? favs.Remove(target) : favs.Add(target));
+    }
+
     private void Menu_FolderSize(object s, RoutedEventArgs e) => Main?.CalculateFolderSizesCommand.Execute(null);
     private void Menu_More(object s, RoutedEventArgs e)
     {

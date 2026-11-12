@@ -9,7 +9,15 @@ public sealed record TabType(string Id, string DisplayName, Func<ITabViewModel> 
 public sealed record FeatureCommand(string Title, string? Gesture, Action<MainViewModel> Execute);
 
 /// <summary>A sidebar entry added by a feature (e.g. tools, tags).</summary>
-public sealed record SidebarEntry(string Section, string Title, Action<MainViewModel> Activate);
+public sealed record SidebarEntry(string Section, string Title, Action<MainViewModel> Activate, IReadOnlyList<SidebarAction>? Actions = null);
+
+/// <summary>Favorite folders: add / remove / test. Implemented by the favorites feature; the shell only asks.</summary>
+public interface IFavorites
+{
+    bool IsFavorite(string path);
+    FileExplorer.Core.Common.Result<FileExplorer.Core.Common.Unit> Add(string path);
+    FileExplorer.Core.Common.Result<FileExplorer.Core.Common.Unit> Remove(string path);
+}
 
 public interface IFeature
 {
@@ -27,6 +35,10 @@ public sealed class FeatureRegistry
 
     /// <summary>What Ctrl+K / Ctrl+F does; set by the search feature (nothing happens when it is absent).</summary>
     public Action<MainViewModel>? SearchAction { get; set; }
+
+    /// <summary>Set by the favorites feature, which then also supplies every Quick access item (so the built-in list is not shown).</summary>
+    public IFavorites? Favorites { get; set; }
+    public bool OwnsQuickAccess { get; set; }
 
     private readonly List<Func<MainViewModel, System.Windows.FrameworkElement>> _rightPanels = new();
     /// <summary>Panels shown at the right of every window (e.g. preview). Each window builds its own instance.</summary>

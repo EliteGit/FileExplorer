@@ -29,14 +29,14 @@ public partial class MainWindow : Window
         _vm = vm; _manager = manager;
         DataContext = vm;
         InitializeComponent();
-        Sidebar.ItemsSource = SidebarBuilder.Build(vm.Features);
+        RefreshSidebar();
         FeatureMenuButton.Visibility = vm.Features.Commands.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         Activated += (_, _) => _manager.Activate(_vm);
         Closing += OnClosing;
         Closed += (_, _) => _manager.NotifyWindowClosed(_vm);
         PreviewKeyDown += OnWindowKey;
         Strip.ItemContainerStyle = BuildTabStyle();
-        vm.Features.SidebarChanged += () => Dispatcher.BeginInvoke(new Action(() => Sidebar.ItemsSource = SidebarBuilder.Build(vm.Features)));
+        vm.Features.SidebarChanged += () => Dispatcher.BeginInvoke(new Action(RefreshSidebar));
         BuildRightPanels();
     }
 
@@ -119,9 +119,39 @@ public partial class MainWindow : Window
         return local.Y >= rowTop && local.Y <= rowTop + row.ActualHeight && local.X >= 0 && local.X <= ActualWidth;
     }
 
+    private IReadOnlyList<SidebarSection>? _sidebar;
+
+    /// <summary>Rebuilds the sidebar after favorites or tags change, keeping the drives tree as the user left it (expanded folders stay open).</summary>
+    private void RefreshSidebar()
+    {
+        var fresh = SidebarBuilder.Build(_vm.Features).ToList();
+        var oldDrives = _sidebar?.FirstOrDefault(x => x.Title == SidebarBuilder.DrivesTitle);
+        int i = fresh.FindIndex(x => x.Title == SidebarBuilder.DrivesTitle);
+        if (oldDrives is not null && i >= 0) fresh[i] = oldDrives;
+        Sidebar.ItemsSource = _sidebar = fresh;
+    }
+
     private void SidebarItem_Click(object sender, MouseButtonEventArgs e)
     {
-        if (((FrameworkElement)sender).DataContext is SidebarItem item) item.Activate(_vm);
+        if (((FrameworkElement)sender).DataContext is not SidebarNode node) return;
+        node.Activate?.Invoke(_vm);
+        if (node.HasLoader) node.IsExpanded = true;     // clicking a drive or folder also shows what is inside it
+    }
+
+    private void SidebarItem_RightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (((FrameworkElement)sender).DataContext is not SidebarNode { Actions.Count: > 0 } node) return;
+        var menu = new ContextMenu();
+        foreach (var action in node.Actions)
+        {
+            var item = new MenuItem { Header = action.Header };
+            var run = action.Run;
+            item.Click += (_, _) => run(_vm);
+            menu.Items.Add(item);
+        }
+        menu.PlacementTarget = (UIElement)sender;
+        menu.IsOpen = true;
+        e.Handled = true;
     }
 
     private void Error_Click(object sender, MouseButtonEventArgs e) => _vm.ShowErrorDetailsCommand.Execute(null);

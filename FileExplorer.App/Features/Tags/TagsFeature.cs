@@ -29,18 +29,33 @@ public sealed class TagsFeature : IFeature
             s => NewTab(registry, System.Text.Json.JsonSerializer.Deserialize<string>(s.Data) is { Length: > 0 } t ? t : null)));
         registry.AddCommand(new FeatureCommand("Tags manager", null, w => w.OpenTool(NewTab(registry, null))));
         registry.AddRightPanel(w => new TagsPanelView(new TagsPanelViewModel(w, _store, _errors, registry)));
-        registry.AddSidebarProvider(() => FavoriteEntries());
+        var favorites = new FavoritesService(_store, _errors, registry);
+        SeedDefaultFavorites();
+        registry.Favorites = favorites;
+        registry.OwnsQuickAccess = true;                 // Quick access and favorites are one list
+        registry.AddSidebarProvider(() => FavoriteEntries(favorites));
         registry.AddSidebarProvider(() => TagEntries(registry));
     }
 
     private TagsTabViewModel NewTab(FeatureRegistry registry, string? tag) => new(_store, _errors, _shell, _prompt, registry, tag);
 
-    private IReadOnlyList<SidebarEntry> FavoriteEntries()
+    /// <summary>The first time, Quick access starts with the usual folders as real favorites, so each can be removed like any other.</summary>
+    private void SeedDefaultFavorites()
+    {
+        var seeded = _store.GetFlag("quick-access-seeded");
+        if (!_errors.Check(seeded) || seeded.Value) return;
+        foreach (var folder in SidebarBuilder.DefaultFolders()) _errors.Check(_store.SetFavorite(folder, true));
+        _errors.Check(_store.SetFlag("quick-access-seeded", true));
+    }
+
+    private IReadOnlyList<SidebarEntry> FavoriteEntries(FavoritesService favorites)
     {
         var favs = _store.Favorites();
         if (!favs.IsOk) { _errors.Report(favs.Error); return Array.Empty<SidebarEntry>(); }
         return favs.Value.Where(p => Directory.Exists(p) || File.Exists(p))
-            .Select(p => new SidebarEntry("FAVORITES", "★ " + (PathUtil.FileName(p)), w => w.NavigateToCommand.Execute(Directory.Exists(p) ? p : PathUtil.Parent(p) ?? "")))
+            .Select(p => new SidebarEntry(SidebarBuilder.QuickAccessTitle, "★ " + PathUtil.FileName(p),
+                w => w.NavigateToCommand.Execute(Directory.Exists(p) ? p : PathUtil.Parent(p) ?? ""),
+                new[] { new SidebarAction("Remove from favorites", w => w.Errors.Check(favorites.Remove(p))) }))
             .ToList();
     }
 
@@ -49,5 +64,31 @@ public sealed class TagsFeature : IFeature
         var tags = _store.AllTags();
         if (!tags.IsOk) { _errors.Report(tags.Error); return Array.Empty<SidebarEntry>(); }
         return tags.Value.Select(t => new SidebarEntry("TAGS", $"# {t.Name} ({t.Files})", w => w.OpenTool(NewTab(registry, t.Name)))).ToList();
+    }
+}
+
+/// <summary>Add / remove favorites and tell every window's sidebar to refresh.</summary>
+public sealed class FavoritesService : IFavorites
+{
+    private readonly ITagStore _store;
+    private readonly ErrorReporter _errors;
+    private readonly FeatureRegistry _registry;
+
+    public FavoritesService(ITagStore store, ErrorReporter errors, FeatureRegistry registry) { _store = store; _errors = errors; _registry = registry; }
+
+    public bool IsFavorite(string path)
+    {
+        var r = _store.IsFavorite(path);
+        return _errors.Check(r) && r.Value;
+    }
+
+    public Result<Unit> Add(string path) => Set(path, true);
+    public Result<Unit> Remove(string path) => Set(path, false);
+
+    private Result<Unit> Set(string path, bool favorite)
+    {
+        var r = _store.SetFavorite(path, favorite);
+        if (r.IsOk) _registry.NotifySidebarChanged();
+        return r;
     }
 }

@@ -17,7 +17,7 @@
                       GridViewColumnHeader.Click="Header_Click" PreviewKeyDown="List_KeyDown" GotKeyboardFocus="OnFocus"
                       AllowDrop="False">
                 <ListView.ContextMenu>
-                    <ContextMenu>
+                    <ContextMenu Opened="Menu_Opened">
                         <MenuItem Header="Open" Click="Menu_Open"/>
                         <MenuItem Header="Reveal in Explorer" Click="Menu_Reveal"/>
                         <Separator/>
@@ -29,6 +29,7 @@
                         <MenuItem Header="Delete" InputGestureText="Del" Click="Menu_Delete"/>
                         <MenuItem Header="New folder" Click="Menu_NewFolder"/>
                         <Separator/>
+                        <MenuItem x:Name="FavMenu" Header="Add to favorites" Click="Menu_Favorite"/>
                         <MenuItem Header="Open terminal here" Click="Menu_Terminal"/>
                         <MenuItem Header="Calculate folder size" Click="Menu_FolderSize"/>
                         <MenuItem Header="Properties" Click="Menu_Properties"/>

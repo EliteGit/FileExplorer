@@ -20,6 +20,10 @@ public interface ITagStore
     Result<Unit> SetFavorite(string path, bool favorite);
     Result<IReadOnlyList<string>> Favorites();
 
+    /// <summary>Small yes/no markers (for example that the default favorites were added once).</summary>
+    Result<bool> GetFlag(string name);
+    Result<Unit> SetFlag(string name, bool value);
+
     Result<string> GetNote(string path);
     Result<Unit> SetNote(string path, string note);
 
@@ -29,7 +33,7 @@ public interface ITagStore
 
 public sealed class TagStore : ITagStore
 {
-    public const int SchemaVersion = 1;
+    public const int SchemaVersion = 2;
     private readonly string _connectionString;
 
     public TagStore(string? databasePath = null)
@@ -96,7 +100,16 @@ public sealed class TagStore : ITagStore
     });
 
     public Result<IReadOnlyList<string>> Favorites() => Run(c => (IReadOnlyList<string>)Query(c,
-        "SELECT f.path FROM file f JOIN favorite fv ON fv.file_id=f.id ORDER BY f.path", r => r.GetString(0)));
+        "SELECT f.path FROM file f JOIN favorite fv ON fv.file_id=f.id ORDER BY f.id", r => r.GetString(0)));
+
+    // ---- flags ----
+    public Result<bool> GetFlag(string name) => Run(c => Scalar(c, "SELECT COALESCE((SELECT value FROM flag WHERE name=$n),0)", ("$n", name)) != 0);
+
+    public Result<Unit> SetFlag(string name, bool value) => Run(c =>
+    {
+        Exec(c, "INSERT INTO flag(name, value) VALUES($n,$v) ON CONFLICT(name) DO UPDATE SET value=$v", ("$n", name), ("$v", value ? 1L : 0L));
+        return Unit.Value;
+    });
 
     // ---- notes ----
     public Result<string> GetNote(string path) => WithFile(path, create: false, (c, id) =>
@@ -188,6 +201,7 @@ public sealed class TagStore : ITagStore
             Exec(c, "CREATE TABLE favorite(file_id INTEGER PRIMARY KEY REFERENCES file(id) ON DELETE CASCADE)");
             Exec(c, "CREATE TABLE note(file_id INTEGER PRIMARY KEY REFERENCES file(id) ON DELETE CASCADE, text TEXT NOT NULL)");
         }
+        if (v < 2) Exec(c, "CREATE TABLE IF NOT EXISTS flag(name TEXT PRIMARY KEY, value INTEGER NOT NULL)");
         Exec(c, "DELETE FROM schema_version");
         Exec(c, "INSERT INTO schema_version(version) VALUES($v)", ("$v", (long)SchemaVersion));
         tx.Commit();

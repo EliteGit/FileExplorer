@@ -40,6 +40,7 @@ public sealed class PromptService : IPrompt
 public sealed class ThemeService : IThemeService
 {
     public bool IsDark { get; private set; }
+    public event Action? Changed;
 
     public void Toggle() => Apply(!IsDark);
 
@@ -48,5 +49,6 @@ public sealed class ThemeService : IThemeService
         IsDark = dark;
         var uri = new Uri($"Themes/{(dark ? "Dark" : "Light")}.xaml", UriKind.Relative);
         Application.Current.Resources.MergedDictionaries[0] = new ResourceDictionary { Source = uri };
+        Changed?.Invoke();
     }
 }

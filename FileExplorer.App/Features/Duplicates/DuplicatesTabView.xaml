@@ -1,0 +1,62 @@
+<UserControl x:Class="FileExplorer.App.Features.Duplicates.DuplicatesTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    <Grid Background="{DynamicResource Panel}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" Padding="12,8" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Choose…" Command="{Binding ChooseFolderCommand}"/>
+                    <Button Content="Find" Command="{Binding FindCommand}"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding Running, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding RootPath}" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <TextBlock Text="Min size (KB)" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" Margin="0,0,6,0"/>
+                <TextBox Text="{Binding MinSizeKb, UpdateSourceTrigger=PropertyChanged}" Width="60" VerticalAlignment="Center"/>
+                <CheckBox Content="Include empty files" IsChecked="{Binding IncludeEmpty}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Fg}"/>
+            </DockPanel>
+        </Border>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="12,6">
+            <TextBlock Text="{Binding Summary}" Foreground="{DynamicResource Muted}"/>
+            <TextBlock Text="{Binding ProgressText}" Foreground="{DynamicResource Muted}" Margin="12,0,0,0"/>
+            <Button Content="Skipped files…" Command="{Binding ShowSkippedCommand}" FontSize="11.5" MinHeight="20" Margin="10,0,0,0"/>
+        </StackPanel>
+        <TreeView Grid.Row="2" ItemsSource="{Binding Groups}" Background="{DynamicResource Panel}" BorderThickness="0" Foreground="{DynamicResource Fg}"
+                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem"><Setter Property="IsExpanded" Value="True"/></Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Files}">
+                    <TextBlock Text="{Binding Header}" FontWeight="SemiBold"/>
+                    <HierarchicalDataTemplate.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding IsMarked}" VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="Mark for deletion"/>
+                                <TextBlock Text="{Binding Name}" Margin="0,0,12,0"/>
+                                <TextBlock Text="{Binding Folder}" Foreground="{DynamicResource Muted}" Margin="0,0,12,0"/>
+                                <TextBlock Text="{Binding ModifiedText}" Foreground="{DynamicResource Muted}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </HierarchicalDataTemplate.ItemTemplate>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+        <Border Grid.Row="3" Padding="12,5" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Keep newest in each group" Command="{Binding AutoSelectCommand}"/>
+                    <Button Content="Clear marks" Command="{Binding ClearSelectionCommand}"/>
+                    <Button Content="Export CSV…" Command="{Binding ExportCsvCommand}"/>
+                    <Button Content="Delete marked (Recycle Bin)" Command="{Binding DeleteMarkedCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding MarkedText}" VerticalAlignment="Center" Foreground="{DynamicResource Muted}"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

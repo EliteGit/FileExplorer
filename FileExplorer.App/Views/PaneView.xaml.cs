@@ -128,6 +128,17 @@ public partial class PaneView : UserControl
     private void Menu_Terminal(object s, RoutedEventArgs e) => Main?.OpenTerminalHereCommand.Execute(null);
     private void Menu_Properties(object s, RoutedEventArgs e) => Main?.ShowPropertiesCommand.Execute(null);
 
+    private void Menu_More(object s, RoutedEventArgs e)
+    {
+        var main = Main;
+        if (main is null || _pane is null) return;
+        var path = _pane.Selection.Count > 0 ? _pane.Selection[0].FullPath : _pane.IsThisPc ? null : _pane.Path;
+        if (path is null) return;
+        var p = PointToScreen(Mouse.GetPosition(this));
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(Window.GetWindow(this)!).Handle;
+        main.Errors.Check(Core.Shell.ShellContextMenu.Show(path, (int)p.X, (int)p.Y, hwnd));
+    }
+
     private static T? FindAncestor<T>(DependencyObject d) where T : DependencyObject
     {
         for (; d is not null; d = System.Windows.Media.VisualTreeHelper.GetParent(d)) if (d is T t) return t;

@@ -31,6 +31,7 @@
                         <Separator/>
                         <MenuItem Header="Open terminal here" Click="Menu_Terminal"/>
                         <MenuItem Header="Properties" Click="Menu_Properties"/>
+                        <MenuItem Header="More options…" Click="Menu_More"/>
                     </ContextMenu>
                 </ListView.ContextMenu>
                 <ListView.View>

@@ -38,12 +38,17 @@ public partial class App : Application
     private static void RegisterFeatures(FeatureRegistry registry)
     {
         // Each phase adds one line here. Removing a line (and its folder) must leave the app building and running.
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Settings.SettingsFeature>(((App)Current)._services));   // Phase 5: theme persistence
         registry.Add(ActivatorUtilities.CreateInstance<BrowserFeature>(((App)Current)._services));
         registry.Add(ActivatorUtilities.CreateInstance<Features.Search.SearchFeature>(((App)Current)._services));   // Phase 2
         registry.Add(ActivatorUtilities.CreateInstance<Features.DiskUsage.DiskUsageFeature>(((App)Current)._services));   // Phase 3
         registry.Add(ActivatorUtilities.CreateInstance<Features.Preview.PreviewFeature>(((App)Current)._services));   // Phase 4: preview
         registry.Add(ActivatorUtilities.CreateInstance<Features.Tags.TagsFeature>(((App)Current)._services));   // Phase 4: tags
         registry.Add(ActivatorUtilities.CreateInstance<Features.Tags.TagSearchIntegration>(((App)Current)._services));   // Phase 4: tag: search term (needs Phase 2)
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Duplicates.DuplicatesFeature>(((App)Current)._services));   // Phase 5
+        registry.Add(ActivatorUtilities.CreateInstance<Features.BulkRename.BulkRenameFeature>(((App)Current)._services));   // Phase 5
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Reports.ReportsFeature>(((App)Current)._services));   // Phase 5
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Checksum.ChecksumFeature>(((App)Current)._services));   // Phase 5
     }
 
     private static void StartWindows(WindowManager manager, SessionStore session, ErrorReporter errors)
@@ -97,6 +102,9 @@ public partial class App : Application
         s.AddSingleton<Features.DiskUsage.DiskUsageServices>();
         // Phase 4
         s.AddSingleton<FileExplorer.Core.Tags.ITagStore, FileExplorer.Core.Tags.TagStore>();
+        // Phase 5
+        s.AddSingleton<SettingsStore>();
+        s.AddSingleton<Features.Tools.ToolServices>();
         return s.BuildServiceProvider();
     }
 }

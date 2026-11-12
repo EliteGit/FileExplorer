@@ -1,0 +1,77 @@
+<UserControl x:Class="FileExplorer.App.Features.BulkRename.BulkRenameTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Background="{DynamicResource Panel}">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{DynamicResource Panel2}">
+            <StackPanel Margin="14">
+                <TextBlock Text="Find / replace" FontWeight="SemiBold"/>
+                <TextBox Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" ToolTip="Find"/>
+                <TextBox Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" ToolTip="Replace with"/>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <CheckBox Content="Regex" IsChecked="{Binding UseRegex}" Foreground="{DynamicResource Fg}" Margin="0,0,12,0"/>
+                    <CheckBox Content="Match case" IsChecked="{Binding CaseSensitive}" Foreground="{DynamicResource Fg}"/>
+                </StackPanel>
+
+                <TextBlock Text="Case" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                <ComboBox SelectedIndex="{Binding CaseModeIndex}" Margin="0,4,0,0">
+                    <ComboBoxItem Content="Leave as is"/><ComboBoxItem Content="UPPER"/><ComboBoxItem Content="lower"/>
+                    <ComboBoxItem Content="Title Case"/><ComboBoxItem Content="Sentence case"/>
+                </ComboBox>
+
+                <CheckBox Content="Insert modified date" IsChecked="{Binding UseDate}" Foreground="{DynamicResource Fg}" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                <TextBox Text="{Binding DateFormat, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" ToolTip="Format, e.g. yyyy-MM-dd"/>
+                <CheckBox Content="At the start (otherwise the end)" IsChecked="{Binding DateAsPrefix}" Foreground="{DynamicResource Fg}" Margin="0,4,0,0"/>
+
+                <CheckBox Content="Counter" IsChecked="{Binding UseCounter}" Foreground="{DynamicResource Fg}" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                <TextBox Text="{Binding CounterTemplate, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" ToolTip="Template, {n} is the number, e.g. Holiday_{n}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <TextBlock Text="Start" VerticalAlignment="Center" Margin="0,0,4,0" Foreground="{DynamicResource Muted}"/>
+                    <TextBox Text="{Binding CounterStart, UpdateSourceTrigger=PropertyChanged}" Width="46"/>
+                    <TextBlock Text="Digits" VerticalAlignment="Center" Margin="10,0,4,0" Foreground="{DynamicResource Muted}"/>
+                    <TextBox Text="{Binding CounterPad, UpdateSourceTrigger=PropertyChanged}" Width="36"/>
+                </StackPanel>
+                <ComboBox SelectedIndex="{Binding CounterModeIndex}" Margin="0,4,0,0">
+                    <ComboBoxItem Content="Replace the name"/><ComboBoxItem Content="Add after the name"/><ComboBoxItem Content="Add before the name"/>
+                </ComboBox>
+
+                <TextBlock Text="Extension" FontWeight="SemiBold" Margin="0,14,0,0"/>
+                <ComboBox SelectedIndex="{Binding ExtensionModeIndex}" Margin="0,4,0,0">
+                    <ComboBoxItem Content="Keep"/><ComboBoxItem Content="lowercase"/><ComboBoxItem Content="UPPERCASE"/>
+                    <ComboBoxItem Content="Set to…"/><ComboBoxItem Content="Remove"/>
+                </ComboBox>
+                <TextBox Text="{Binding ExtensionValue, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0" ToolTip="New extension (for 'Set to')"/>
+
+                <Button Content="Rename" Command="{Binding ApplyCommand}" IsEnabled="{Binding CanApply}" Margin="0,18,0,0" HorizontalAlignment="Left" Padding="18,4"
+                        BorderBrush="{DynamicResource Accent}"/>
+                <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource Muted}"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ListView Grid.Column="1" ItemsSource="{Binding Rows}" VirtualizingPanel.IsVirtualizing="True">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Current name" Width="280" DisplayMemberBinding="{Binding OldName}"/>
+                    <GridViewColumn Header="New name" Width="280">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding NewName}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Changed}" Value="True"><Setter Property="Foreground" Value="{DynamicResource Fg}"/></DataTrigger>
+                                                <DataTrigger Binding="{Binding HasConflict}" Value="True"><Setter Property="Foreground" Value="{DynamicResource Danger}"/></DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Problem" Width="320" DisplayMemberBinding="{Binding Conflict}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

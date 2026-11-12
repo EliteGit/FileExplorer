@@ -40,6 +40,7 @@ public partial class App : Application
         // Each phase adds one line here. Removing a line (and its folder) must leave the app building and running.
         registry.Add(ActivatorUtilities.CreateInstance<BrowserFeature>(((App)Current)._services));
         registry.Add(ActivatorUtilities.CreateInstance<Features.Search.SearchFeature>(((App)Current)._services));   // Phase 2
+        registry.Add(ActivatorUtilities.CreateInstance<Features.DiskUsage.DiskUsageFeature>(((App)Current)._services));   // Phase 3
     }
 
     private static void StartWindows(WindowManager manager, SessionStore session, ErrorReporter errors)
@@ -89,6 +90,8 @@ public partial class App : Application
         s.AddSingleton<QueryTermProviders>();
         s.AddSingleton(p => new QueryParser(p.GetRequiredService<QueryTermProviders>()));
         s.AddSingleton<SavedSearchStore>();
+        // Phase 3
+        s.AddSingleton<Features.DiskUsage.DiskUsageServices>();
         return s.BuildServiceProvider();
     }
 }

@@ -41,6 +41,9 @@ public partial class App : Application
         registry.Add(ActivatorUtilities.CreateInstance<BrowserFeature>(((App)Current)._services));
         registry.Add(ActivatorUtilities.CreateInstance<Features.Search.SearchFeature>(((App)Current)._services));   // Phase 2
         registry.Add(ActivatorUtilities.CreateInstance<Features.DiskUsage.DiskUsageFeature>(((App)Current)._services));   // Phase 3
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Preview.PreviewFeature>(((App)Current)._services));   // Phase 4: preview
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Tags.TagsFeature>(((App)Current)._services));   // Phase 4: tags
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Tags.TagSearchIntegration>(((App)Current)._services));   // Phase 4: tag: search term (needs Phase 2)
     }
 
     private static void StartWindows(WindowManager manager, SessionStore session, ErrorReporter errors)
@@ -92,6 +95,8 @@ public partial class App : Application
         s.AddSingleton<SavedSearchStore>();
         // Phase 3
         s.AddSingleton<Features.DiskUsage.DiskUsageServices>();
+        // Phase 4
+        s.AddSingleton<FileExplorer.Core.Tags.ITagStore, FileExplorer.Core.Tags.TagStore>();
         return s.BuildServiceProvider();
     }
 }

@@ -10,7 +10,7 @@ public static class SidebarBuilder
     public static IReadOnlyList<SidebarSection> Build(FeatureRegistry features)
     {
         var sections = new List<SidebarSection> { QuickAccess(), Drives() };
-        foreach (var group in features.Sidebar.GroupBy(e => e.Section))
+        foreach (var group in features.Sidebar.Concat(features.SidebarProviders.SelectMany(p => p())).GroupBy(e => e.Section))
             sections.Add(new SidebarSection(group.Key, group.Select(e => new SidebarItem(e.Title, e.Activate)).ToList()));
         return sections.Where(s => s.Items.Count > 0).ToList();
     }

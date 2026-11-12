@@ -33,6 +33,13 @@ public sealed class FeatureRegistry
     public IReadOnlyList<Func<MainViewModel, System.Windows.FrameworkElement>> RightPanels => _rightPanels;
     public void AddRightPanel(Func<MainViewModel, System.Windows.FrameworkElement> factory) => _rightPanels.Add(factory);
 
+    private readonly List<Func<IReadOnlyList<SidebarEntry>>> _sidebarProviders = new();
+    /// <summary>Entries that change at run time (favorites, tags); evaluated each time a sidebar is built.</summary>
+    public IReadOnlyList<Func<IReadOnlyList<SidebarEntry>>> SidebarProviders => _sidebarProviders;
+    public void AddSidebarProvider(Func<IReadOnlyList<SidebarEntry>> provider) => _sidebarProviders.Add(provider);
+    public event Action? SidebarChanged;
+    public void NotifySidebarChanged() => SidebarChanged?.Invoke();
+
     public IReadOnlyList<IFeature> Features => _features;
     public IReadOnlyCollection<TabType> TabTypes => _tabTypes.Values;
     public IReadOnlyList<FeatureCommand> Commands => _commands;

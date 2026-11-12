@@ -142,4 +142,14 @@ internal static class NativeMethods
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool GetDiskFreeSpaceW(string root, out uint sectorsPerCluster, out uint bytesPerSector, out uint freeClusters, out uint totalClusters);
+    // --- File identity (Phase 4) ---
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FILE_ID_DESCRIPTOR { public uint dwSize; public int Type; public long FileId; public long Pad; }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern Microsoft.Win32.SafeHandles.SafeFileHandle OpenFileById(Microsoft.Win32.SafeHandles.SafeFileHandle hVolumeHint,
+        ref FILE_ID_DESCRIPTOR lpFileId, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwFlagsAndAttributes);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern uint GetFinalPathNameByHandleW(Microsoft.Win32.SafeHandles.SafeFileHandle h, System.Text.StringBuilder path, uint size, uint flags);
 }

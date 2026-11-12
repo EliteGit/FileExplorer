@@ -36,6 +36,27 @@ public partial class MainWindow : Window
         Closed += (_, _) => _manager.NotifyWindowClosed(_vm);
         PreviewKeyDown += OnWindowKey;
         Strip.ItemContainerStyle = BuildTabStyle();
+        vm.Features.SidebarChanged += () => Dispatcher.BeginInvoke(new Action(() => Sidebar.ItemsSource = SidebarBuilder.Build(vm.Features)));
+        BuildRightPanels();
+    }
+
+    /// <summary>Feature-provided right-hand panels (preview). Shown only while a folder tab is active.</summary>
+    private void BuildRightPanels()
+    {
+        if (_vm.Features.RightPanels.Count == 0) return;
+        var stack = new Grid();   // the first panel (preview) takes the free height, later ones their own height
+        int row = 0;
+        foreach (var factory in _vm.Features.RightPanels)
+        {
+            stack.RowDefinitions.Add(new RowDefinition { Height = row == 0 ? new GridLength(1, GridUnitType.Star) : GridLength.Auto });
+            var panel = factory(_vm);
+            Grid.SetRow(panel, row++);
+            stack.Children.Add(panel);
+        }
+        RightHost.Child = stack;
+        void Sync() => RightHost.Visibility = _vm.ActiveBrowser is null ? Visibility.Collapsed : Visibility.Visible;
+        _vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(MainViewModel.ActiveBrowser)) Sync(); };
+        Sync();
     }
 
     /// <summary>Tab context menu is built in code: handlers declared inside a XAML style break generated connection ids.</summary>

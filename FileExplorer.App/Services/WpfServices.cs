@@ -35,20 +35,3 @@ public sealed class PromptService : IPrompt
 {
     public string? Ask(string title, string label, string initial) => Views.PromptWindow.Show(title, label, initial);
 }
-
-/// <summary>Swaps the light/dark resource dictionary (always the first merged dictionary).</summary>
-public sealed class ThemeService : IThemeService
-{
-    public bool IsDark { get; private set; }
-    public event Action? Changed;
-
-    public void Toggle() => Apply(!IsDark);
-
-    public void Apply(bool dark)
-    {
-        IsDark = dark;
-        var uri = new Uri($"Themes/{(dark ? "Dark" : "Light")}.xaml", UriKind.Relative);
-        Application.Current.Resources.MergedDictionaries[0] = new ResourceDictionary { Source = uri };
-        Changed?.Invoke();
-    }
-}

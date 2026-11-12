@@ -10,14 +10,13 @@ public sealed class WindowFactory
     private readonly ErrorReporter _errors;
     private readonly FileCommands _files;
     private readonly SplitCommands _split;
-    private readonly IThemeService _theme;
 
-    public WindowFactory(FeatureRegistry features, ErrorReporter errors, FileCommands files, SplitCommands split, IThemeService theme)
+    public WindowFactory(FeatureRegistry features, ErrorReporter errors, FileCommands files, SplitCommands split)
     {
-        _features = features; _errors = errors; _files = files; _split = split; _theme = theme;
+        _features = features; _errors = errors; _files = files; _split = split;
     }
 
-    public MainViewModel Create(WindowManager owner) => new(owner, _features, _errors, _files, _split, _theme);
+    public MainViewModel Create(WindowManager owner) => new(owner, _features, _errors, _files, _split);
 }
 
 /// <summary>Owns every open window. Tabs only ever move to a NEW window (no merge-back).</summary>

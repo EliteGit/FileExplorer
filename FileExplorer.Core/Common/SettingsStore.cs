@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace FileExplorer.Core.Common;
 
-public sealed record AppSettings(bool DarkTheme = false, bool ShowHidden = false);
+public sealed record AppSettings(bool ShowHidden = false);
 
 /// <summary>User settings as JSON in %LocalAppData%\FileExplorer\settings.json.</summary>
 public sealed class SettingsStore

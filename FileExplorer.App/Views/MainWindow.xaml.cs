@@ -78,6 +78,17 @@ public partial class MainWindow : Window
         menu.Items.Add(item);
     }
 
+    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+    /// <summary>Dark title bar and borders (Windows 10 build 18985+; older builds simply keep the normal one).</summary>
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        int on = 1;
+        DwmSetWindowAttribute(new System.Windows.Interop.WindowInteropHelper(this).Handle, 20, ref on, sizeof(int));
+    }
+
     public event Action<MainViewModel>? ClosingLast;
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)

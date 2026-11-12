@@ -5,18 +5,17 @@ using FileExplorer.Core.Common;
 
 namespace FileExplorer.App.Features.Settings;
 
-/// <summary>Remembers the theme and the hidden-files choice between runs.</summary>
+/// <summary>Remembers the hidden-files choice between runs.</summary>
 public sealed class SettingsFeature : IFeature
 {
     private readonly SettingsStore _store;
-    private readonly ThemeService _theme;
     private readonly ErrorReporter _errors;
     private readonly PaneFactory _panes;
     private AppSettings _current = new();
 
-    public SettingsFeature(SettingsStore store, ThemeService theme, ErrorReporter errors, PaneFactory panes)
+    public SettingsFeature(SettingsStore store, ErrorReporter errors, PaneFactory panes)
     {
-        _store = store; _theme = theme; _errors = errors; _panes = panes;
+        _store = store; _errors = errors; _panes = panes;
     }
 
     public string Name => "Settings";
@@ -25,9 +24,7 @@ public sealed class SettingsFeature : IFeature
     {
         var loaded = _store.Load();
         if (loaded.IsOk) _current = loaded.Value; else _errors.Report(loaded.Error);      // defaults are used knowingly, and the user is told
-        _theme.Apply(_current.DarkTheme);
         _panes.DefaultShowHidden = _current.ShowHidden;
-        _theme.Changed += () => Save(_current with { DarkTheme = _theme.IsDark });
         registry.AddCommand(new FeatureCommand("Show / hide hidden files", null, ToggleHidden));
     }
 

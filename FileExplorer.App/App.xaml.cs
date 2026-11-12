@@ -38,7 +38,7 @@ public partial class App : Application
     private static void RegisterFeatures(FeatureRegistry registry)
     {
         // Each phase adds one line here. Removing a line (and its folder) must leave the app building and running.
-        registry.Add(ActivatorUtilities.CreateInstance<Features.Settings.SettingsFeature>(((App)Current)._services));   // Phase 5: theme persistence
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Settings.SettingsFeature>(((App)Current)._services));   // Phase 5: saved settings
         registry.Add(ActivatorUtilities.CreateInstance<BrowserFeature>(((App)Current)._services));
         registry.Add(ActivatorUtilities.CreateInstance<Features.Search.SearchFeature>(((App)Current)._services));   // Phase 2
         registry.Add(new Features.DiskUsage.DiskUsageFeature(ActivatorUtilities.CreateInstance<Features.DiskUsage.DiskUsageServices>(((App)Current)._services)));   // Phase 3 (builds its own services, so this one line is all that registers it)
@@ -78,8 +78,6 @@ public partial class App : Application
         s.AddSingleton<IIconProvider>(p => p.GetRequiredService<IconCache>());
         s.AddSingleton<IClipboardService, ClipboardService>();
         s.AddSingleton<IPrompt, PromptService>();
-        s.AddSingleton<ThemeService>();
-        s.AddSingleton<IThemeService>(p => p.GetRequiredService<ThemeService>());
         s.AddSingleton<FeatureRegistry>();
         s.AddSingleton<SessionStore>();
         s.AddSingleton<FileCommands>();

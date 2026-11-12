@@ -34,7 +34,7 @@
         </Grid.RowDefinitions>
 
         <!-- tab strip -->
-        <Border Grid.Row="0" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="8,6,8,0">
+        <Border Grid.Row="0" Background="{DynamicResource TabBar}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="8,6,8,0">
             <DockPanel LastChildFill="True">
                 <Button DockPanel.Dock="Right" Content="✕" ToolTip="Close window" Command="{Binding CloseWindowCommand}" Margin="0,0,0,2"/>
                 <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
@@ -132,7 +132,6 @@
         <!-- status bar -->
         <Border Grid.Row="3" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="12,4">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Content="Toggle theme" Command="{Binding ToggleThemeCommand}" MinHeight="22" Padding="8,0"/>
                 <TextBlock DockPanel.Dock="Left" Text="{Binding StatusLeft}" Foreground="{DynamicResource Muted}" Margin="0,0,16,0"/>
                 <TextBlock DockPanel.Dock="Left" Text="{Binding StatusSelection}" Foreground="{DynamicResource Muted}" Margin="0,0,16,0"/>
                 <TextBlock Text="{Binding StatusError}" Foreground="{DynamicResource Danger}" TextTrimming="CharacterEllipsis"

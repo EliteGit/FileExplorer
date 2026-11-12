@@ -12,7 +12,6 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly WindowManager _manager;
     private readonly FileCommands _files;
     private readonly SplitCommands _split;
-    private readonly IThemeService _theme;
     private PaneViewModel? _watchedPane;
     private BrowserTabViewModel? _watchedBrowser;
 
@@ -22,9 +21,9 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _statusError = "";
 
     public MainViewModel(WindowManager manager, FeatureRegistry features, ErrorReporter errors,
-        FileCommands files, SplitCommands split, IThemeService theme)
+        FileCommands files, SplitCommands split)
     {
-        _manager = manager; Features = features; Errors = errors; _files = files; _split = split; _theme = theme;
+        _manager = manager; Features = features; Errors = errors; _files = files; _split = split;
         errors.ErrorReported += OnError;
     }
 
@@ -166,7 +165,6 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand] private void CloseWindow() => _manager.CloseWindow(this);
     [RelayCommand] private void NextTab() => StepTab(1);
     [RelayCommand] private void PreviousTab() => StepTab(-1);
-    [RelayCommand] private void ToggleTheme() => _theme.Toggle();
 
     private void StepTab(int delta)
     {

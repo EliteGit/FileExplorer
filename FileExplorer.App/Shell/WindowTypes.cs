@@ -8,12 +8,6 @@ public sealed record WindowSnapshot(WindowBounds Bounds, List<TabState> Tabs, in
 
 public sealed record SessionSnapshot(List<WindowSnapshot> Windows);
 
-public interface IThemeService
-{
-    bool IsDark { get; }
-    void Toggle();
-}
-
 /// <summary>The only way the WindowManager touches real windows; WPF implements it, tests fake it.</summary>
 public interface IWindowPresenter
 {

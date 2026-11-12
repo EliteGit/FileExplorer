@@ -26,9 +26,11 @@ public sealed partial class PaneViewModel : ObservableObject, IDisposable
     [ObservableProperty] private bool _showHidden;
     [ObservableProperty] private bool _isActive;
 
-    public PaneViewModel(IFileSource source, ErrorReporter errors, IIconProvider icons, Action<Action> post, bool watch = true)
+    private readonly IFolderSizeProvider? _sizes;
+
+    public PaneViewModel(IFileSource source, ErrorReporter errors, IIconProvider icons, Action<Action> post, bool watch = true, IFolderSizeProvider? sizes = null, bool showHidden = false)
     {
-        _source = source; _errors = errors; _icons = icons; _post = post;
+        _source = source; _errors = errors; _icons = icons; _post = post; _sizes = sizes; _showHidden = showHidden;
         if (!watch) return;
         _watcher = new DirectoryWatcher(TimeSpan.FromMilliseconds(250));
         _watcher.Changed += () => _post(() => Refresh());
@@ -149,6 +151,24 @@ public sealed partial class PaneViewModel : ObservableObject, IDisposable
     }
 
     public IReadOnlyList<string> SelectedPaths => Selection.Select(s => s.FullPath).ToList();
+
+    /// <summary>
+    /// Fills the Size column for the selected folders (or every folder when none is selected). A size from a disk-usage scan is used when there
+    /// is one; otherwise the folder is scanned now. Each value says which, so an on-demand number is never mistaken for a live one.
+    /// </summary>
+    public async Task CalculateFolderSizesAsync(CancellationToken ct = default)
+    {
+        if (_sizes is null) { _errors.Report(new AppError("Folder sizes are not available in this build.")); return; }
+        var targets = (Selection.Count > 0 ? Selection : Items.ToList()).Where(i => i.IsDir && !i.IsDriveRow).ToList();
+        foreach (var t in targets) t.SetFolderSize("calculating…");
+        foreach (var t in targets)
+        {
+            var r = _sizes.Lookup(t.FullPath);
+            if (!r.IsOk) r = await _sizes.ComputeAsync(t.FullPath, ct);
+            if (r.IsOk) t.SetFolderSize($"{SizeFormatter.Format(r.Value.Bytes)} ({r.Value.Source})");
+            else { t.SetFolderSize("unavailable"); _errors.Report(r.Error); }
+        }
+    }
 
     public void Dispose() => _watcher?.Dispose();
 }

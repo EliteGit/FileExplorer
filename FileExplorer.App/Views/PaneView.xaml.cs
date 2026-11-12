@@ -128,6 +128,7 @@ public partial class PaneView : UserControl
     private void Menu_Terminal(object s, RoutedEventArgs e) => Main?.OpenTerminalHereCommand.Execute(null);
     private void Menu_Properties(object s, RoutedEventArgs e) => Main?.ShowPropertiesCommand.Execute(null);
 
+    private void Menu_FolderSize(object s, RoutedEventArgs e) => Main?.CalculateFolderSizesCommand.Execute(null);
     private void Menu_More(object s, RoutedEventArgs e)
     {
         var main = Main;

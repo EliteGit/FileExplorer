@@ -193,6 +193,7 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand] private void RenameSelected() { if (ActivePane is { } p) _files.RenameSelected(p); }
     [RelayCommand] private void NewFolder() { if (ActivePane is { } p) _files.NewFolder(p); }
     [RelayCommand] private void Undo() => _files.Undo(ActivePane);
+    [RelayCommand] private async Task CalculateFolderSizes() { if (ActivePane is { } p) await p.CalculateFolderSizesAsync(); }
     [RelayCommand] private void RevealSelected() { if (ActivePane is { } p) _files.Reveal(p); }
     [RelayCommand] private void ShowProperties() { if (ActivePane is { } p) _files.Properties(p); }
     [RelayCommand] private void OpenTerminalHere() { if (ActivePane is { } p) _files.OpenTerminalHere(p); }

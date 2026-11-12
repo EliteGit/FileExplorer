@@ -101,6 +101,8 @@ public partial class App : Application
         // Phase 4
         s.AddSingleton<FileExplorer.Core.Tags.ITagStore, FileExplorer.Core.Tags.TagStore>();
         // Phase 5
+        s.AddSingleton<FolderSizeService>();
+        s.AddSingleton<IFolderSizeProvider>(p => p.GetRequiredService<FolderSizeService>());
         s.AddSingleton<SettingsStore>();
         s.AddSingleton<Features.Tools.ToolServices>();
         return s.BuildServiceProvider();

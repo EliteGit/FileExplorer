@@ -31,11 +31,15 @@ public sealed class PaneFactory
     private readonly ErrorReporter _errors;
     private readonly IIconProvider _icons;
     private readonly Action<Action> _post;
+    private readonly IFolderSizeProvider? _sizes;
 
-    public PaneFactory(IFileSource source, ErrorReporter errors, IIconProvider icons, Action<Action> post)
+    public PaneFactory(IFileSource source, ErrorReporter errors, IIconProvider icons, Action<Action> post, IFolderSizeProvider? sizes = null)
     {
-        _source = source; _errors = errors; _icons = icons; _post = post;
+        _source = source; _errors = errors; _icons = icons; _post = post; _sizes = sizes;
     }
 
-    public PaneViewModel Create() => new(_source, _errors, _icons, _post);
+    /// <summary>New panes start with this value (set from the saved settings).</summary>
+    public bool DefaultShowHidden { get; set; }
+
+    public PaneViewModel Create() => new(_source, _errors, _icons, _post, true, _sizes, DefaultShowHidden);
 }

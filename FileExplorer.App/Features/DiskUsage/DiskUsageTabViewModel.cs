@@ -15,8 +15,9 @@ namespace FileExplorer.App.Features.DiskUsage;
 
 public sealed class DiskUsageServices
 {
-    public DiskUsageServices(IFileSource files, ShellActions shell, IFileOps ops, UndoStack undo, ErrorReporter errors, IPrompt prompt, Action<Action> post)
-    { Files = files; Shell = shell; Ops = ops; Undo = undo; Errors = errors; Prompt = prompt; Post = post; }
+    public DiskUsageServices(IFileSource files, ShellActions shell, IFileOps ops, UndoStack undo, ErrorReporter errors, IPrompt prompt, Action<Action> post, FileExplorer.App.Services.FolderSizeService? sizes = null)
+    { Sizes = sizes; Files = files; Shell = shell; Ops = ops; Undo = undo; Errors = errors; Prompt = prompt; Post = post; }
+    public FileExplorer.App.Services.FolderSizeService? Sizes { get; }
     public IFileSource Files { get; }
     public ShellActions Shell { get; }
     public IFileOps Ops { get; }
@@ -98,6 +99,7 @@ public sealed partial class DiskUsageTabViewModel : TabViewModelBase
         Scanning = false;
         if (o.Error is not null) { ProgressText = ""; _s.Errors.Report(o.Error); return; }
         Tree = o.Tree!;
+        _s.Sizes?.Publish(Tree);
         Tree.Mode = AllocatedMode ? SizeMode.Allocated : SizeMode.Logical;
         ScanChip = $"Scanned in {o.Seconds:0.0} s";
         UsedChip = Tree.HasVolumeInfo ? $"{SizeFormatter.Format(Tree.VolumeTotalBytes - Tree.VolumeFreeBytes)} used of {SizeFormatter.Format(Tree.VolumeTotalBytes)}" : $"{SizeFormatter.Format(Tree.RootLogical)} in {Tree.RootFiles:N0} files";

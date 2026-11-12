@@ -30,6 +30,7 @@
                         <MenuItem Header="New folder" Click="Menu_NewFolder"/>
                         <Separator/>
                         <MenuItem Header="Open terminal here" Click="Menu_Terminal"/>
+                        <MenuItem Header="Calculate folder size" Click="Menu_FolderSize"/>
                         <MenuItem Header="Properties" Click="Menu_Properties"/>
                         <MenuItem Header="More options…" Click="Menu_More"/>
                     </ContextMenu>

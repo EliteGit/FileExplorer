@@ -1,0 +1,5 @@
+<UserControl x:Class="FileExplorer.App.Views.BrowserTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid x:Name="Root" Background="{DynamicResource Panel}"/>
+</UserControl>

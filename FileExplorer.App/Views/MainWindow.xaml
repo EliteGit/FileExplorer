@@ -1,0 +1,140 @@
+<Window x:Class="FileExplorer.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:FileExplorer.App.Controls"
+        xmlns:t="clr-namespace:FileExplorer.App.Tabs"
+        xmlns:v="clr-namespace:FileExplorer.App.Views"
+        xmlns:s="clr-namespace:FileExplorer.App.Shell"
+        Title="File Explorer" Width="1100" Height="700" MinWidth="560" MinHeight="320"
+        Background="{DynamicResource Bg}" Foreground="{DynamicResource Fg}" FontFamily="Segoe UI" FontSize="13">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type t:BrowserTabViewModel}">
+            <v:BrowserTabView/>
+        </DataTemplate>
+        <v:ActiveTabVisibilityConverter x:Key="ActiveTabVisibility"/>
+    </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding NewTabCommand}"/>
+        <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding CloseTabCommand}"/>
+        <KeyBinding Key="Tab" Modifiers="Ctrl" Command="{Binding NextTabCommand}"/>
+        <KeyBinding Key="Tab" Modifiers="Ctrl+Shift" Command="{Binding PreviousTabCommand}"/>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding NewWindowCommand}"/>
+        <KeyBinding Key="Oem5" Modifiers="Ctrl" Command="{Binding ToggleSplitCommand}"/>
+        <KeyBinding Key="D1" Modifiers="Ctrl" Command="{Binding FocusPaneCommand}" CommandParameter="1"/>
+        <KeyBinding Key="D2" Modifiers="Ctrl" Command="{Binding FocusPaneCommand}" CommandParameter="2"/>
+        <KeyBinding Key="K" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
+        <KeyBinding Key="F" Modifiers="Ctrl" Command="{Binding FocusSearchCommand}"/>
+    </Window.InputBindings>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- tab strip -->
+        <Border Grid.Row="0" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="8,6,8,0">
+            <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Content="✕" ToolTip="Close window" Command="{Binding CloseWindowCommand}" Margin="0,0,0,2"/>
+                <Button DockPanel.Dock="Left" Content="＋" ToolTip="New tab (Ctrl+T)" Command="{Binding NewTabCommand}" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                <c:TabStrip x:Name="Strip" DockPanel.Dock="Left" ItemsSource="{Binding Tabs}" SelectedTab="{Binding ActiveTab, Mode=TwoWay}" VerticalAlignment="Bottom">
+                    <c:TabStrip.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                    </c:TabStrip.ItemsPanel>
+                    <c:TabStrip.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel LastChildFill="True">
+                                <Button DockPanel.Dock="Right" Content="✕" FontSize="10" MinWidth="20" MinHeight="20" Padding="2" Opacity="0.6"
+                                        Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=c:TabStrip}}"
+                                        CommandParameter="{Binding}"/>
+                                <Border DockPanel.Dock="Left" Width="8" Height="8" CornerRadius="2" Background="{DynamicResource Accent}" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=c:TabStripItem}}"/>
+                            </DockPanel>
+                        </DataTemplate>
+                    </c:TabStrip.ItemTemplate>
+                </c:TabStrip>
+                <Border/>
+            </DockPanel>
+        </Border>
+
+        <!-- toolbar -->
+        <Border Grid.Row="1" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="8">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                    <Button Content="←" ToolTip="Back (Alt+←)" Command="{Binding BackCommand}" IsEnabled="{Binding ActivePane.CanGoBack}"/>
+                    <Button Content="→" ToolTip="Forward (Alt+→)" Command="{Binding ForwardCommand}" IsEnabled="{Binding ActivePane.CanGoForward}"/>
+                    <Button Content="↑" ToolTip="Up (Alt+↑)" Command="{Binding UpCommand}" IsEnabled="{Binding ActivePane.CanGoUp}"/>
+                    <Button Content="⟳" ToolTip="Refresh" Command="{Binding RefreshCommand}"/>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0">
+                    <ToggleButton Style="{StaticResource ToggleTool}" Content="◫" ToolTip="Split view (Ctrl+\)" IsChecked="{Binding IsSplit, Mode=OneWay}" Command="{Binding ToggleSplitCommand}"/>
+                    <Button Content="⇅" ToolTip="Side by side / stacked" Command="{Binding ToggleOrientationCommand}"/>
+                    <Button Content="⇄" ToolTip="Swap panes" Command="{Binding SwapPanesCommand}"/>
+                    <Button Content="⧉" ToolTip="Move tab to new window" Command="{Binding MoveTabToNewWindowCommand}"/>
+                    <Button x:Name="FeatureMenuButton" Content="☰" ToolTip="Tools" Click="FeatureMenu_Click"/>
+                </StackPanel>
+                <c:BreadcrumbBar x:Name="Crumbs" Path="{Binding ActivePane.Path}" NavigateCommand="{Binding NavigateToCommand}" Margin="8,0" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <!-- body -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border Grid.Column="0" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="Sidebar" Margin="0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Title}" Margin="12,10,12,4" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource Muted}"/>
+                                    <ItemsControl ItemsSource="{Binding Items}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Padding="12,4" Background="Transparent" Cursor="Hand" MouseLeftButtonUp="SidebarItem_Click">
+                                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+            <ItemsControl Grid.Column="1" ItemsSource="{Binding Tabs}" Background="{DynamicResource Panel}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><Grid/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Visibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource ActiveTabVisibility}">
+                                    <Binding/>
+                                    <Binding Path="DataContext.ActiveTab" RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+            </ItemsControl>
+        </Grid>
+
+        <!-- status bar -->
+        <Border Grid.Row="3" Background="{DynamicResource Panel2}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="12,4">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Content="Toggle theme" Command="{Binding ToggleThemeCommand}" MinHeight="22" Padding="8,0"/>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding StatusLeft}" Foreground="{DynamicResource Muted}" Margin="0,0,16,0"/>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding StatusSelection}" Foreground="{DynamicResource Muted}" Margin="0,0,16,0"/>
+                <TextBlock Text="{Binding StatusError}" Foreground="{DynamicResource Danger}" TextTrimming="CharacterEllipsis"
+                           Cursor="Hand" ToolTip="Click for error details" MouseLeftButtonUp="Error_Click"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

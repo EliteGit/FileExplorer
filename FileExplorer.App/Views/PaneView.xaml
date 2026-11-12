@@ -1,0 +1,72 @@
+<UserControl x:Class="FileExplorer.App.Views.PaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border x:Name="Chrome" BorderThickness="2" BorderBrush="Transparent">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border x:Name="Header" Grid.Row="0" Visibility="Collapsed" Background="{DynamicResource Panel2}"
+                    BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="10,5">
+                <TextBlock x:Name="HeaderText" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"/>
+            </Border>
+            <ListView x:Name="List" Grid.Row="1" ItemsSource="{Binding Items}" VirtualizingPanel.IsVirtualizing="True"
+                      VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.IsDeferredScrollingEnabled="False"
+                      SelectionChanged="List_SelectionChanged" MouseDoubleClick="List_DoubleClick"
+                      GridViewColumnHeader.Click="Header_Click" PreviewKeyDown="List_KeyDown" GotKeyboardFocus="OnFocus"
+                      AllowDrop="False">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Open" Click="Menu_Open"/>
+                        <MenuItem Header="Reveal in Explorer" Click="Menu_Reveal"/>
+                        <Separator/>
+                        <MenuItem Header="Cut" InputGestureText="Ctrl+X" Click="Menu_Cut"/>
+                        <MenuItem Header="Copy" InputGestureText="Ctrl+C" Click="Menu_Copy"/>
+                        <MenuItem Header="Paste" InputGestureText="Ctrl+V" Click="Menu_Paste"/>
+                        <Separator/>
+                        <MenuItem Header="Rename" InputGestureText="F2" Click="Menu_Rename"/>
+                        <MenuItem Header="Delete" InputGestureText="Del" Click="Menu_Delete"/>
+                        <MenuItem Header="New folder" Click="Menu_NewFolder"/>
+                        <Separator/>
+                        <MenuItem Header="Open terminal here" Click="Menu_Terminal"/>
+                        <MenuItem Header="Properties" Click="Menu_Properties"/>
+                    </ContextMenu>
+                </ListView.ContextMenu>
+                <ListView.View>
+                    <GridView AllowsColumnReorder="False">
+                        <GridViewColumn Width="300">
+                            <GridViewColumn.Header><GridViewColumnHeader Tag="Name" Content="Name"/></GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Opacity="{Binding Opacity}">
+                                        <Image Source="{Binding Icon}" Width="16" Height="16" Margin="0,0,8,0"/>
+                                        <TextBlock Text="{Binding Name}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="90">
+                            <GridViewColumn.Header><GridViewColumnHeader Tag="Size" Content="Size" HorizontalContentAlignment="Right"/></GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding SizeText}" TextAlignment="Right" HorizontalAlignment="Right"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="130">
+                            <GridViewColumn.Header><GridViewColumnHeader Tag="Modified" Content="Modified"/></GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding ModifiedText}"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Width="150">
+                            <GridViewColumn.Header><GridViewColumnHeader Tag="Type" Content="Type"/></GridViewColumn.Header>
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate><TextBlock Text="{Binding TypeText}"/></DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+    </Border>
+</UserControl>

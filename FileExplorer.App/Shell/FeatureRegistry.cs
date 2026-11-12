@@ -1,0 +1,44 @@
+using FileExplorer.App.Tabs;
+
+namespace FileExplorer.App.Shell;
+
+/// <summary>A tab kind. Create makes a fresh one; Restore rebuilds one from saved state.</summary>
+public sealed record TabType(string Id, string DisplayName, Func<ITabViewModel> Create, Func<TabState, ITabViewModel> Restore);
+
+/// <summary>A command a feature adds to the toolbar menu / keyboard map.</summary>
+public sealed record FeatureCommand(string Title, string? Gesture, Action<MainViewModel> Execute);
+
+/// <summary>A sidebar entry added by a feature (e.g. tools, tags).</summary>
+public sealed record SidebarEntry(string Section, string Title, Action<MainViewModel> Activate);
+
+public interface IFeature
+{
+    string Name { get; }
+    void Register(FeatureRegistry registry);
+}
+
+/// <summary>Features add tab types, commands and sidebar items here; the shell only iterates the registry.</summary>
+public sealed class FeatureRegistry
+{
+    private readonly List<IFeature> _features = new();
+    private readonly Dictionary<string, TabType> _tabTypes = new();
+    private readonly List<FeatureCommand> _commands = new();
+    private readonly List<SidebarEntry> _sidebar = new();
+
+    public IReadOnlyList<IFeature> Features => _features;
+    public IReadOnlyCollection<TabType> TabTypes => _tabTypes.Values;
+    public IReadOnlyList<FeatureCommand> Commands => _commands;
+    public IReadOnlyList<SidebarEntry> Sidebar => _sidebar;
+
+    public void Add(IFeature feature)
+    {
+        _features.Add(feature);
+        feature.Register(this);
+    }
+
+    public void AddTabType(TabType type) => _tabTypes[type.Id] = type;
+    public void AddCommand(FeatureCommand command) => _commands.Add(command);
+    public void AddSidebarEntry(SidebarEntry entry) => _sidebar.Add(entry);
+
+    public TabType? FindTabType(string id) => _tabTypes.GetValueOrDefault(id);
+}

@@ -1,5 +1,6 @@
 using FileExplorer.Core.Common;
 using FileExplorer.Core.Native;
+using FileExplorer.Core.Shell;
 using static FileExplorer.Core.Native.NativeMethods;
 
 namespace FileExplorer.Core.Ops;
@@ -27,9 +28,12 @@ public sealed class ShellFileOps : IFileOps
 
     public Result<OpOutcome> Delete(IReadOnlyList<string> sources)
     {
+        var started = DateTime.Now.AddSeconds(-2);
         var r = Run(FO_DELETE, sources, null, FOF_ALLOWUNDO);
-        // Recycle Bin restore is not available through this API, so deletes are reported as not undoable.
-        return r.IsOk ? Ok(null) : Result<OpOutcome>.Err(r.Error);
+        if (!r.IsOk) return Result<OpOutcome>.Err(r.Error);
+        var gone = sources.Where(p => !Exists(p)).ToList();
+        // Items that vanished are in the Recycle Bin (or were permanently deleted, in which case Undo reports that honestly).
+        return Ok(new DelegateUndoable($"Delete {gone.Count} item(s)", () => RecycleBin.Restore(gone, started)));
     }
 
     public Result<OpOutcome> Rename(string path, string newName)

@@ -75,9 +75,30 @@ public sealed class UsnWatcher : IDisposable
         var parsed = UsnRecordParser.Parse(output.AsSpan(8, got - 8));
         if (!parsed.IsOk) return Result<int>.Err(parsed.Error);
         int n = 0;
-        foreach (var change in UsnChangeTranslator.ToChanges(parsed.Value)) { _index.Apply(change); n++; }
+        foreach (var change in UsnChangeTranslator.ToChanges(parsed.Value))
+        {
+            _index.Apply(change); n++;
+            if (change.Kind != IndexChangeKind.Deleted && _index.HasMetadata) ReadMetadata(change.Frn);
+        }
         _index.NextUsn = next;
         return Result<int>.Ok(n);
+    }
+
+    /// <summary>A file created or renamed while the index is live: read its size and date so size:/dm: stay correct.</summary>
+    private void ReadMetadata(ulong frn)
+    {
+        int row = _index.RowOfFrn(frn);
+        if (row < 0) return;
+        string path; bool isDir;
+        using (_index.ReadLock()) { path = _index.GetFullPath(row); isDir = _index.IsDir(row); }
+        try
+        {
+            if (isDir) return;
+            var fi = new FileInfo(path);
+            if (!fi.Exists) return;
+            _index.ApplyMetadata(new[] { (row, fi.Length, fi.LastWriteTimeUtc.ToFileTimeUtc()) });
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* gone or locked: the next rebuild will have it */ }
     }
 
     public void Dispose()

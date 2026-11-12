@@ -5,6 +5,9 @@ namespace FileExplorer.Core.Fs;
 
 public enum IndexMode { Enumerated, Mft }
 
+/// <summary>Whether sizes and dates are known. MFT indexes start with None and are filled in the background.</summary>
+public enum MetadataState { None, Filling, Complete }
+
 /// <summary>
 /// Struct-of-arrays index of one volume: a shared char pool plus parallel arrays, no object per file.
 /// Readers take <see cref="ReadLock"/>; the USN watcher mutates through <see cref="Apply"/>.
@@ -27,7 +30,7 @@ public sealed class FileIndex
     internal FileIndex(string volume, IndexMode mode, bool hasMetadata, int capacity = 1024)
     {
         Volume = PathUtil.Normalize(volume);
-        Mode = mode; HasMetadata = hasMetadata;
+        Mode = mode; _metadata = hasMetadata ? MetadataState.Complete : MetadataState.None;
         capacity = Math.Max(capacity, 16);
         _pool = new char[capacity * 12];
         _nameStart = new int[capacity]; _nameLen = new int[capacity]; _parent = new int[capacity];
@@ -36,8 +39,34 @@ public sealed class FileIndex
 
     public string Volume { get; }
     public IndexMode Mode { get; }
-    /// <summary>False for MFT enumeration: USN records carry names and attributes only, no size or time.</summary>
-    public bool HasMetadata { get; }
+    private volatile MetadataState _metadata;
+    private double _metadataProgress;
+
+    /// <summary>False until sizes and dates are known. MFT records carry names and attributes only; the background filler adds the rest.</summary>
+    public bool HasMetadata => _metadata == MetadataState.Complete;
+    public MetadataState Metadata => _metadata;
+    /// <summary>0..1 while Filling.</summary>
+    public double MetadataProgress { get => Volatile.Read(ref _metadataProgress); internal set => Volatile.Write(ref _metadataProgress, value); }
+
+    internal void BeginMetadataFill() { MetadataProgress = 0; _metadata = MetadataState.Filling; }
+    internal void CompleteMetadata() { MetadataProgress = 1; _metadata = MetadataState.Complete; }
+    internal void AbandonMetadataFill() => _metadata = MetadataState.None;
+
+    /// <summary>Writes sizes and dates for a batch of rows (one short write lock per batch, so searches are never blocked for long).</summary>
+    public void ApplyMetadata(IReadOnlyList<(int Row, long Size, long Modified)> batch)
+    {
+        using var _ = WriteLock();
+        foreach (var (row, size, modified) in batch)
+            if (row >= 0 && row < Count) { _size[row] = size; _mtime[row] = modified; }
+    }
+
+    /// <summary>Row of a file reference number, or -1.</summary>
+    public int RowOfFrn(ulong frn)
+    {
+        using var _ = ReadLock();
+        if (_byFrn is null) return -1;
+        return _byFrn.TryGetValue(frn & FrnMask, out var row) ? row : -1;
+    }
     public int Count { get; private set; }
     public int DeletedCount { get; private set; }
     public int LiveCount => Count - DeletedCount;
@@ -175,7 +204,7 @@ public sealed class FileIndex
         using var _ = WriteLock();
         var map = new int[Count];
         var fresh = new FileIndex(Volume, Mode, HasMetadata, Math.Max(LiveCount, 16))
-        { BuiltUtc = BuiltUtc, JournalId = JournalId, NextUsn = NextUsn };
+        { BuiltUtc = BuiltUtc, JournalId = JournalId, NextUsn = NextUsn, _metadata = _metadata, MetadataProgress = MetadataProgress };
         for (int i = 0; i < Count; i++)
             map[i] = IsDeleted(i) ? -1 : fresh.Append(_frn[i], -1, Name(i), _size[i], _mtime[i], _attrs[i]);
         for (int i = 0; i < Count; i++)

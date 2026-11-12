@@ -14,7 +14,9 @@ public sealed class QueryEngine
         if (query.IsEmpty) return Result<int[]>.Ok(Array.Empty<int>());
         var preds = query.Predicates.OrderBy(p => p.Cost).ToArray();
         if (!index.HasMetadata && preds.Any(p => p.NeedsMetadata))
-            return new AppError($"{index.Volume} uses the fast MFT index, which has no sizes or dates. size: and dm: need the enumerated index (relaunch without elevation, or rebuild in enumerated mode).");
+            return new AppError(index.Metadata == MetadataState.Filling
+                ? $"Sizes and dates for {index.Volume} are still being read in the background ({index.MetadataProgress:P0}). size: and dm: work once that finishes; name, ext: and path: searches work now."
+                : $"{index.Volume} has no sizes or dates yet. size: and dm: need them; rebuild the index to read them.");
 
         using var _ = index.ReadLock();
         int count = index.Count, chunks = (count + ChunkSize - 1) / ChunkSize;

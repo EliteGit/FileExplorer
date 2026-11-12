@@ -12,6 +12,8 @@ public sealed class VolumeIndexState
     public long Progress { get; set; }
     public bool FromCache { get; set; }
     public bool Live { get; set; }
+    /// <summary>True while sizes and dates are being read in the background (MFT mode).</summary>
+    public bool Filling => Index?.Metadata == MetadataState.Filling;
     public AppError? Error { get; set; }
 }
 
@@ -24,10 +26,12 @@ public sealed class IndexService : IDisposable
     private readonly Dictionary<string, VolumeIndexState> _states = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, UsnWatcher> _watchers = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
+    private readonly CancellationTokenSource _fillCts = new();
+    private readonly MetadataFiller _filler;
 
     public IndexService(IFileSource files, IndexCache cache, Func<bool> isElevated)
     {
-        _files = files; _cache = cache; _isElevated = isElevated;
+        _files = files; _cache = cache; _isElevated = isElevated; _filler = new MetadataFiller(files);
     }
 
     public event Action? Changed;
@@ -37,6 +41,7 @@ public sealed class IndexService : IDisposable
     public IReadOnlyList<VolumeIndexState> Volumes { get { lock (_gate) return _states.Values.ToList(); } }
     public IReadOnlyList<FileIndex> Indexes { get { lock (_gate) return _states.Values.Select(s => s.Index).OfType<FileIndex>().ToList(); } }
     public bool AnyBuilding { get { lock (_gate) return _states.Values.Any(s => s.Building); } }
+    public bool AnyFilling { get { lock (_gate) return _states.Values.Any(s => s.Filling); } }
 
     public static IReadOnlyList<string> FixedVolumes() =>
         DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Fixed && d.IsReady).Select(d => d.Name).ToList();
@@ -75,7 +80,7 @@ public sealed class IndexService : IDisposable
             var loaded = _cache.Load(v);
             if (!loaded.IsOk) { RaiseError(s, loaded.Error); continue; }
             s.Index = loaded.Value; s.FromCache = true;
-            if (loaded.Value.Mode == IndexMode.Mft) TryCatchUp(s);
+            if (loaded.Value.Mode == IndexMode.Mft) { TryCatchUp(s); StartFill(s); }
         }
         Raise();
     }
@@ -139,6 +144,34 @@ public sealed class IndexService : IDisposable
         if (index.Mode != IndexMode.Mft) return;
         var w = UsnWatcher.Create(index);
         if (w.IsOk) AttachWatcher(s, w.Value); else RaiseError(s, w.Error);
+        StartFill(s);
+    }
+
+    /// <summary>MFT indexes have names only; read sizes and dates in the background, then save so the next start already has them.</summary>
+    private void StartFill(VolumeIndexState s)
+    {
+        var index = s.Index;
+        if (index is null || index.Mode != IndexMode.Mft || index.HasMetadata || index.Metadata == MetadataState.Filling) return;
+        index.BeginMetadataFill();
+        var last = DateTime.MinValue;
+        var progress = new Progress<double>(_ =>
+        {
+            if (DateTime.UtcNow - last < TimeSpan.FromMilliseconds(500)) return;
+            last = DateTime.UtcNow; Raise();
+        });
+        _ = Task.Run(() =>
+        {
+            var r = _filler.Fill(index, _fillCts.Token, progress);
+            if (r.IsOk)
+            {
+                if (r.Value.Unreadable > 0) index.AddWarning(new AppError($"{r.Value.Unreadable} folders could not be read, so their files have no size or date."));
+                var saved = _cache.Save(index);
+                if (!saved.IsOk) RaiseError(s, saved.Error);
+            }
+            else RaiseError(s, r.Error);
+            Raise();
+        });
+        Raise();
     }
 
     /// <summary>Writes the current indexes so the next start is instant.</summary>
@@ -149,6 +182,7 @@ public sealed class IndexService : IDisposable
 
     public void Dispose()
     {
+        _fillCts.Cancel();
         lock (_gate) { foreach (var w in _watchers.Values) w.Dispose(); _watchers.Clear(); }
     }
 }

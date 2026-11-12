@@ -177,7 +177,9 @@ public sealed partial class SearchTabViewModel : TabViewModelBase
             var modes = volumes.Where(v => v.Index is not null).Select(v => v.Index!.Mode).Distinct().ToList();
             string mode = modes.Count > 1 ? "Mixed index" : modes[0] == IndexMode.Mft ? "MFT index" : "Enumerated index";
             string live = volumes.All(v => v.Index is null || v.Live) ? "updated live" : volumes.Any(v => v.FromCache) ? "from cache" : "built " + Ago(volumes.Where(v => v.Index is not null).Min(v => v.Index!.BuiltUtc));
-            ChipText = $"{mode} · {files:N0} files · {live}";
+            var filling = volumes.Where(x => x.Filling).Select(x => x.Index!.MetadataProgress).ToList();
+            string sizes = filling.Count > 0 ? $" · reading sizes {filling.Average():P0}" : "";
+            ChipText = $"{mode} · {files:N0} files · {live}{sizes}";
             ChipWarn = modes.Contains(IndexMode.Enumerated);
         }
         CanEnableFast = !_index.IsElevated && _index.Indexes.Concat(Array.Empty<FileIndex>()).All(i => i.Mode != IndexMode.Mft);

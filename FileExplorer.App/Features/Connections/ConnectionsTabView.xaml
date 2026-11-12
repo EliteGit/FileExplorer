@@ -1,0 +1,60 @@
+<UserControl x:Class="FileExplorer.App.Features.Connections.ConnectionsTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+    <Grid Background="{DynamicResource Panel}">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Padding="12,8" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="Scan all drives" Command="{Binding ScanCommand}" BorderBrush="{DynamicResource Accent}" Padding="14,3"/>
+                    <Button Content="Cancel" Command="{Binding CancelCommand}" Visibility="{Binding Running, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Export CSV…" Command="{Binding ExportCsvCommand}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox Content="Shortcuts &amp; links" IsChecked="{Binding Shortcuts}" Foreground="{DynamicResource Fg}" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Program dependencies" IsChecked="{Binding Imports}" Foreground="{DynamicResource Fg}" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Paths inside files" IsChecked="{Binding Mentions}" Foreground="{DynamicResource Fg}" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Include the Windows folder" IsChecked="{Binding IncludeWindows}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center"
+                              ToolTip="Takes effect on the next scan. Off by default: every program loads many Windows DLLs, which only adds noise."/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Padding="12,6">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="12,0,0,0">
+                    <CheckBox Content="Only connections that cross drives" IsChecked="{Binding CrossDriveOnly}" Foreground="{DynamicResource Fg}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <TextBlock Text="Filter" VerticalAlignment="Center" Foreground="{DynamicResource Muted}" Margin="0,0,6,0"/>
+                    <TextBox Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}" Width="260" ToolTip="Show only files whose path contains this text"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="{Binding Summary}" Foreground="{DynamicResource Muted}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding ProgressText}" Foreground="{DynamicResource Accent}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <TreeView x:Name="Tree" Grid.Row="2" ItemsSource="{Binding Roots}" Background="{DynamicResource Panel}" BorderThickness="0" Foreground="{DynamicResource Fg}"
+                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal" Background="Transparent" MouseLeftButtonUp="Row_Click" MouseRightButtonUp="Row_RightClick">
+                        <TextBlock Text="{Binding Relation}" Foreground="{DynamicResource Accent}" Margin="0,0,8,0" MinWidth="0"/>
+                        <TextBlock Text="{Binding Display}" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding Detail}" Foreground="{DynamicResource Muted}" Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding Badge}" Foreground="{DynamicResource Danger}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </Grid>
+</UserControl>

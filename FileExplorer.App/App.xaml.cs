@@ -74,6 +74,7 @@ public partial class App : Application
         registry.Add(ActivatorUtilities.CreateInstance<Features.BulkRename.BulkRenameFeature>(((App)Current)._services));   // Phase 5
         registry.Add(ActivatorUtilities.CreateInstance<Features.Reports.ReportsFeature>(((App)Current)._services));   // Phase 5
         registry.Add(ActivatorUtilities.CreateInstance<Features.Checksum.ChecksumFeature>(((App)Current)._services));   // Phase 5
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Connections.ConnectionsFeature>(((App)Current)._services));   // Connections tool
     }
 
     private static void StartWindows(WindowManager manager, SessionStore session, ErrorReporter errors)

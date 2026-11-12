@@ -213,5 +213,8 @@ public sealed partial class MainViewModel : ObservableObject
 
     /// <summary>Raised when a view should focus the global search box (feature-driven).</summary>
     public event Action? FocusSearchRequested;
-    [RelayCommand] private void FocusSearch() => FocusSearchRequested?.Invoke();
+    [RelayCommand] private void FocusSearch()
+    {
+        if (Features.SearchAction is { } search) search(this); else FocusSearchRequested?.Invoke();
+    }
 }

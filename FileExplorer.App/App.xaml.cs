@@ -5,6 +5,8 @@ using FileExplorer.App.Shell;
 using FileExplorer.App.Tabs;
 using FileExplorer.Core.Common;
 using FileExplorer.Core.Fs;
+using FileExplorer.Core.Index;
+using FileExplorer.Core.Search;
 using FileExplorer.Core.Ops;
 using FileExplorer.Core.Shell;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,7 @@ public partial class App : Application
         var manager = _services.GetRequiredService<WindowManager>();
         var errors = _services.GetRequiredService<ErrorReporter>();
         var session = _services.GetRequiredService<SessionStore>();
+        Exit += (_, _) => _services.GetRequiredService<IndexService>().SaveAll();
 
         _services.GetRequiredService<WpfWindowPresenter>().Bind(
             () => _services.GetRequiredService<WindowManager>(), _ => SaveSession(manager, session, errors));
@@ -36,6 +39,7 @@ public partial class App : Application
     {
         // Each phase adds one line here. Removing a line (and its folder) must leave the app building and running.
         registry.Add(ActivatorUtilities.CreateInstance<BrowserFeature>(((App)Current)._services));
+        registry.Add(ActivatorUtilities.CreateInstance<Features.Search.SearchFeature>(((App)Current)._services));   // Phase 2
     }
 
     private static void StartWindows(WindowManager manager, SessionStore session, ErrorReporter errors)
@@ -77,6 +81,14 @@ public partial class App : Application
         s.AddSingleton<WpfWindowPresenter>();
         s.AddSingleton<IWindowPresenter>(p => p.GetRequiredService<WpfWindowPresenter>());
         s.AddSingleton<WindowManager>();
+        // Phase 2
+        s.AddSingleton<ElevationService>();
+        s.AddSingleton<IndexCache>();
+        s.AddSingleton(p => new IndexService(p.GetRequiredService<IFileSource>(), p.GetRequiredService<IndexCache>(), p.GetRequiredService<ElevationService>().IsElevated));
+        s.AddSingleton<QueryEngine>();
+        s.AddSingleton<QueryTermProviders>();
+        s.AddSingleton(p => new QueryParser(p.GetRequiredService<QueryTermProviders>()));
+        s.AddSingleton<SavedSearchStore>();
         return s.BuildServiceProvider();
     }
 }

@@ -25,6 +25,14 @@ public sealed class FeatureRegistry
     private readonly List<FeatureCommand> _commands = new();
     private readonly List<SidebarEntry> _sidebar = new();
 
+    /// <summary>What Ctrl+K / Ctrl+F does; set by the search feature (nothing happens when it is absent).</summary>
+    public Action<MainViewModel>? SearchAction { get; set; }
+
+    private readonly List<Func<MainViewModel, System.Windows.FrameworkElement>> _rightPanels = new();
+    /// <summary>Panels shown at the right of every window (e.g. preview). Each window builds its own instance.</summary>
+    public IReadOnlyList<Func<MainViewModel, System.Windows.FrameworkElement>> RightPanels => _rightPanels;
+    public void AddRightPanel(Func<MainViewModel, System.Windows.FrameworkElement> factory) => _rightPanels.Add(factory);
+
     public IReadOnlyList<IFeature> Features => _features;
     public IReadOnlyCollection<TabType> TabTypes => _tabTypes.Values;
     public IReadOnlyList<FeatureCommand> Commands => _commands;

@@ -99,8 +99,24 @@ public static class SidebarBuilder
         }
     }
 
+    /// <summary>A folder only gets an expander when it has a visible sub-folder (same rules as the listing: no hidden folders, no links).</summary>
     private static SidebarNode FolderNode(string title, string path, IFileSource files) =>
-        new(title, vm => vm.NavigateToCommand.Execute(path), null, () => FolderChildren(path, files));
+        new(title, vm => vm.NavigateToCommand.Execute(path), null, HasSubfolders(path) ? () => FolderChildren(path, files) : null);
+
+    /// <summary>
+    /// Stops at the first sub-folder, so it is cheap. If the folder cannot be read at all (access denied, drive not ready) it counts as
+    /// "may have folders", so the expander is there and opening it shows the reason instead of hiding the problem.
+    /// </summary>
+    public static bool HasSubfolders(string path)
+    {
+        try
+        {
+            var options = new EnumerationOptions { IgnoreInaccessible = false, AttributesToSkip = FileAttributes.Hidden | FileAttributes.ReparsePoint, RecurseSubdirectories = false };
+            using var e = new DirectoryInfo(path).EnumerateDirectories("*", options).GetEnumerator();
+            return e.MoveNext();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException) { return true; }
+    }
 
     /// <summary>The visible sub-folders of a folder, sorted by name. A folder that cannot be read shows why, in the tree, instead of looking empty.</summary>
     public static IReadOnlyList<SidebarNode> FolderChildren(string path, IFileSource files)
